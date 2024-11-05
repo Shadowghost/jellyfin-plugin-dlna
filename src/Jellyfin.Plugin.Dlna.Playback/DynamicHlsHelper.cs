@@ -12,7 +12,6 @@ using Jellyfin.Data.Enums;
 using Jellyfin.Extensions;
 using Jellyfin.Plugin.Dlna.Model;
 using Jellyfin.Plugin.Dlna.Playback.Extensions;
-using Jellyfin.Plugin.Dlna.Playback.Model;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
@@ -151,7 +150,7 @@ public class DynamicHlsHelper
         _httpContextAccessor.HttpContext.Response.Headers.Append(HeaderNames.Expires, "0");
         if (isHeadRequest)
         {
-            return new FileContentResult(Array.Empty<byte>(), MimeTypes.GetMimeType("playlist.m3u8"));
+            return new FileContentResult([], MimeTypes.GetMimeType("playlist.m3u8"));
         }
 
         var totalBitrate = (state.OutputAudioBitrate ?? 0) + (state.OutputVideoBitrate ?? 0);
@@ -531,7 +530,7 @@ public class DynamicHlsHelper
     /// <param name="user">Http user context.</param>
     private void AddTrickplay(StreamState state, Dictionary<int, TrickplayInfo> trickplayResolutions, StringBuilder builder, ClaimsPrincipal user)
     {
-        const string playlistFormat = "#EXT-X-IMAGE-STREAM-INF:BANDWIDTH={0},RESOLUTION={1}x{2},CODECS=\"jpeg\",URI=\"{3}\"";
+        const string PlaylistFormat = "#EXT-X-IMAGE-STREAM-INF:BANDWIDTH={0},RESOLUTION={1}x{2},CODECS=\"jpeg\",URI=\"{3}\"";
 
         foreach (var resolution in trickplayResolutions)
         {
@@ -547,7 +546,7 @@ public class DynamicHlsHelper
 
             builder.AppendFormat(
                 CultureInfo.InvariantCulture,
-                playlistFormat,
+                PlaylistFormat,
                 trickplayInfo.Bandwidth.ToString(CultureInfo.InvariantCulture),
                 trickplayInfo.Width.ToString(CultureInfo.InvariantCulture),
                 trickplayInfo.Height.ToString(CultureInfo.InvariantCulture),
@@ -569,7 +568,7 @@ public class DynamicHlsHelper
             && state.VideoStream is not null
             && state.VideoStream.Level.HasValue)
         {
-            levelString = state.VideoStream.Level.ToString() ?? string.Empty;
+            levelString = state.VideoStream.Level?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         }
         else
         {

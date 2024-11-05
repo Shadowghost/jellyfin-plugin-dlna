@@ -46,7 +46,7 @@ namespace Rssdp.Infrastructure
                 throw new ArgumentException("data is not a valid request, it does not contain any CRLF/LF terminators.", nameof(data));
             }
 
-            using (var retVal = new ByteArrayContent(Array.Empty<byte>()))
+            using (var retVal = new ByteArrayContent([]))
             {
                 var lines = data.Split(LineTerminators, StringSplitOptions.None);
 
@@ -194,7 +194,7 @@ namespace Rssdp.Infrastructure
             return values;
         }
 
-        private string CombineQuotedSegments(string[] segments, ref int segmentIndex, string segment)
+        private static string CombineQuotedSegments(string[] segments, ref int segmentIndex, string segment)
         {
             var trimmedSegment = segment.Trim();
             for (int index = segmentIndex; index < segments.Length; index++)

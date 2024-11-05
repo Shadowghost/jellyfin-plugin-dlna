@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -137,7 +136,7 @@ namespace Rssdp.Infrastructure
             {
                 if (_MulticastListenSockets is not null)
                 {
-                    _logger.LogInformation("{0} disposing _BroadcastListenSocket", GetType().Name);
+                    _logger.LogInformation("{Name} disposing _BroadcastListenSocket", GetType().Name);
                     foreach (var socket in _MulticastListenSockets)
                     {
                         socket.Dispose();
@@ -192,7 +191,7 @@ namespace Rssdp.Infrastructure
             catch (Exception ex)
             {
                 var localIP = ((IPEndPoint)socket.LocalEndPoint).Address;
-                _logger.LogError(ex, "Error sending socket message from {0} to {1}", localIP.ToString(), destination.ToString());
+                _logger.LogError(ex, "Error sending socket message from {Source} to {Destination}", localIP.ToString(), destination.ToString());
             }
         }
 
@@ -298,12 +297,12 @@ namespace Rssdp.Infrastructure
                     var sockets = _sendSockets.ToList();
                     _sendSockets = null;
 
-                    _logger.LogInformation("{0} Disposing {1} sendSockets", GetType().Name, sockets.Count);
+                    _logger.LogInformation("{Name} Disposing {Count} sendSockets", GetType().Name, sockets.Count);
 
                     foreach (var socket in sockets)
                     {
                         var socketAddress = ((IPEndPoint)socket.LocalEndPoint).Address;
-                        _logger.LogInformation("{0} disposing sendSocket from {1}", GetType().Name, socketAddress);
+                        _logger.LogInformation("{Name} disposing sendSocket from {Address}", GetType().Name, socketAddress);
                         socket.Dispose();
                     }
                 }
@@ -369,7 +368,7 @@ namespace Rssdp.Infrastructure
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create SSDP UDP multicast socket for {0} on interface {1} (index {2})", intf, intf.Name, intf.Index);
+                    _logger.LogError(ex, "Failed to create SSDP UDP multicast socket for {Interface} on interface {Name} (index {Index})", intf, intf.Name, intf.Index);
                 }
             }
 
@@ -391,7 +390,7 @@ namespace Rssdp.Infrastructure
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create SSDP UDP sender socket for {0} on interface {1} (index {2})", intf, intf.Name, intf.Index);
+                    _logger.LogError(ex, "Failed to create SSDP UDP sender socket for {Interface} on interface {Name} (index {Index})", intf, intf.Name, intf.Index);
                 }
             }
 
@@ -441,13 +440,13 @@ namespace Rssdp.Infrastructure
             }
         }
 
-        private void ProcessMessage(string data, IPEndPoint endPoint, IPAddress receivedOnlocalIPAddress)
+        private void ProcessMessage(string data, IPEndPoint endPoint, IPAddress receivedOnLocalIPAddress)
         {
             // Responses start with the HTTP version, prefixed with HTTP/ while
             // requests start with a method which can vary and might be one we haven't
             // seen/don't know. We'll check if this message is a request or a response
             // by checking for the HTTP/ prefix on the start of the message.
-            _logger.LogDebug("Received data from {From} on {Port} at {Address}:\n{Data}", endPoint.Address, endPoint.Port, receivedOnlocalIPAddress, data);
+            _logger.LogDebug("Received data from {From} on {Port} at {Address}:\n{Data}", endPoint.Address, endPoint.Port, receivedOnLocalIPAddress, data);
             if (data.StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
             {
                 HttpResponseMessage responseMessage = null;
@@ -462,7 +461,7 @@ namespace Rssdp.Infrastructure
 
                 if (responseMessage is not null)
                 {
-                    OnResponseReceived(responseMessage, endPoint, receivedOnlocalIPAddress);
+                    OnResponseReceived(responseMessage, endPoint, receivedOnLocalIPAddress);
                 }
             }
             else
@@ -479,12 +478,12 @@ namespace Rssdp.Infrastructure
 
                 if (requestMessage is not null)
                 {
-                    OnRequestReceived(requestMessage, endPoint, receivedOnlocalIPAddress);
+                    OnRequestReceived(requestMessage, endPoint, receivedOnLocalIPAddress);
                 }
             }
         }
 
-        private void OnRequestReceived(HttpRequestMessage data, IPEndPoint remoteEndPoint, IPAddress receivedOnlocalIPAddress)
+        private void OnRequestReceived(HttpRequestMessage data, IPEndPoint remoteEndPoint, IPAddress receivedOnLocalIPAddress)
         {
             // SSDP specification says only * is currently used but other uri's might
             // be implemented in the future and should be ignored unless understood.
@@ -495,7 +494,7 @@ namespace Rssdp.Infrastructure
             }
 
             var handlers = RequestReceived;
-            handlers?.Invoke(this, new RequestReceivedEventArgs(data, remoteEndPoint, receivedOnlocalIPAddress));
+            handlers?.Invoke(this, new RequestReceivedEventArgs(data, remoteEndPoint, receivedOnLocalIPAddress));
         }
 
         private void OnResponseReceived(HttpResponseMessage data, IPEndPoint endPoint, IPAddress localIPAddress)
@@ -507,7 +506,7 @@ namespace Rssdp.Infrastructure
             });
         }
 
-        private Socket CreateSsdpUdpSocket(IPData bindInterface, int multicastTimeToLive, int localPort)
+        private static Socket CreateSsdpUdpSocket(IPData bindInterface, int multicastTimeToLive, int localPort)
         {
             var interfaceAddress = bindInterface.Address;
             ArgumentNullException.ThrowIfNull(interfaceAddress);
@@ -539,7 +538,7 @@ namespace Rssdp.Infrastructure
             }
         }
 
-        private Socket CreateUdpMulticastSocket(IPAddress multicastAddress, IPData bindInterface, int localPort)
+        private static Socket CreateUdpMulticastSocket(IPAddress multicastAddress, IPData bindInterface, int localPort)
         {
             var bindIPAddress = bindInterface.Address;
             ArgumentNullException.ThrowIfNull(multicastAddress);

@@ -180,7 +180,7 @@ namespace Rssdp.Infrastructure
                 var commsServer = _CommsServer;
                 if (commsServer is not null)
                 {
-                    commsServer.RequestReceived -= this.CommsServer_RequestReceived;
+                    commsServer.RequestReceived -= CommsServer_RequestReceived;
                 }
 
                 var tasks = Devices.ToList().Select(RemoveDevice).ToArray();
@@ -226,7 +226,7 @@ namespace Rssdp.Infrastructure
             if (String.IsNullOrEmpty(mx))
             {
                 // Windows Explorer is poorly behaved and doesn't supply an MX header value.
-                // if (this.SupportPnpRootDevice)
+                // if (SupportPnpRootDevice)
                 mx = "1";
                 // else
                 // return;
@@ -310,7 +310,7 @@ namespace Rssdp.Infrastructure
             SendSearchResponse(device.FullDeviceType, device, GetUsn(device.Udn, device.FullDeviceType), endPoint, receivedOnlocalIPAddress, cancellationToken);
         }
 
-        private string GetUsn(string udn, string fullDeviceType)
+        private static string GetUsn(string udn, string fullDeviceType)
         {
             return string.Format(CultureInfo.InvariantCulture, "{0}::{1}", udn, fullDeviceType);
         }
@@ -549,7 +549,7 @@ namespace Rssdp.Infrastructure
             return TimeSpan.Zero;
         }
 
-        private string GetFirstHeaderValue(System.Net.Http.Headers.HttpRequestHeaders httpRequestHeaders, string headerName)
+        private static string GetFirstHeaderValue(System.Net.Http.Headers.HttpRequestHeaders httpRequestHeaders, string headerName)
         {
             string retVal = null;
             if (httpRequestHeaders.TryGetValues(headerName, out var values) && values is not null)
@@ -583,7 +583,7 @@ namespace Rssdp.Infrastructure
 
         private void CommsServer_RequestReceived(object sender, RequestReceivedEventArgs e)
         {
-            if (this.IsDisposed)
+            if (IsDisposed)
             {
                 return;
             }
@@ -611,12 +611,12 @@ namespace Rssdp.Infrastructure
 
             public string Key
             {
-                get { return this.SearchTarget + ":" + this.EndPoint; }
+                get { return SearchTarget + ":" + EndPoint; }
             }
 
             public bool IsOld()
             {
-                return DateTime.UtcNow.Subtract(this.Received).TotalMilliseconds > 500;
+                return DateTime.UtcNow.Subtract(Received).TotalMilliseconds > 500;
             }
         }
     }

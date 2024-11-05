@@ -24,10 +24,7 @@ namespace Rssdp.Infrastructure
         /// <seealso cref="Dispose()"/>
         protected virtual void ThrowIfDisposed()
         {
-            if (this.IsDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
         }
 
         /// <summary>
@@ -40,7 +37,7 @@ namespace Rssdp.Infrastructure
             private set;
         }
 
-        public string BuildMessage(string header, Dictionary<string, string> values)
+        public static string BuildMessage(string header, Dictionary<string, string> values)
         {
             var builder = new StringBuilder();
 
@@ -58,19 +55,13 @@ namespace Rssdp.Infrastructure
             return builder.ToString();
         }
 
-        /// <summary>
-        /// Disposes this object instance and all internally managed resources.
-        /// </summary>
-        /// <remarks>
-        /// <para>Sets the <see cref="IsDisposed"/> property to true. Does not explicitly throw an exception if called multiple times, but makes no promises about behavior of derived classes.</para>
-        /// </remarks>
-        /// <seealso cref="IsDisposed"/>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "We do exactly as asked, but CA doesn't seem to like us also setting the IsDisposed property. Too bad, it's a good idea and shouldn't cause an exception or anything likely to interfere with the dispose process.")]
+        /// <inheritdoc />
         public void Dispose()
         {
             IsDisposed = true;
 
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
