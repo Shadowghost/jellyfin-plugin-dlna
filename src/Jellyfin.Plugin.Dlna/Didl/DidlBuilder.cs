@@ -261,8 +261,8 @@ public class DidlBuilder
         var contentFeatureList = ContentFeatureBuilder.BuildVideoHeader(
             _profile,
             streamInfo.Container,
-            streamInfo.TargetVideoCodec[0],
-            streamInfo.TargetAudioCodec[0],
+            streamInfo.TargetVideoCodec.FirstOrDefault(),
+            streamInfo.TargetAudioCodec.FirstOrDefault(),
             targetWidth,
             targetHeight,
             streamInfo.TargetVideoBitDepth,

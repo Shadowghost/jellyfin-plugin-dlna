@@ -409,7 +409,7 @@ public class DlnaManager : IDlnaManager
 
         if (profile.Id.IsNullOrEmpty())
         {
-            throw new ArgumentException("Profile id cannot be empty. ProfileId: {Id}", nameof(profile));
+            throw new ArgumentException($"Profile id cannot be empty. ProfileId: {profile.Id}", nameof(profile));
         }
 
         ArgumentException.ThrowIfNullOrEmpty(profile.Name);
