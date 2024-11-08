@@ -9,10 +9,10 @@ namespace Rssdp.Infrastructure
     /// </summary>
     public sealed class HttpRequestParser : HttpParserBase<HttpRequestMessage>
     {
-        private readonly string[] ContentHeaderNames = new string[]
-        {
+        private readonly string[] _contentHeaderNames =
+        [
             "Allow", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type", "Expires", "Last-Modified"
-        };
+        ];
 
         /// <summary>
         /// Parses the specified data into a <see cref="HttpRequestMessage"/> instance.
@@ -21,7 +21,7 @@ namespace Rssdp.Infrastructure
         /// <returns>A <see cref="HttpRequestMessage"/> instance containing the parsed data.</returns>
         public override HttpRequestMessage Parse(string data)
         {
-            HttpRequestMessage retVal = null;
+            HttpRequestMessage? retVal = null;
 
             try
             {
@@ -44,15 +44,9 @@ namespace Rssdp.Infrastructure
         /// <param name="message">Either a <see cref="HttpResponseMessage"/> or <see cref="HttpRequestMessage"/> to assign the parsed values to.</param>
         protected override void ParseStatusLine(string data, HttpRequestMessage message)
         {
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
+            ArgumentNullException.ThrowIfNull(data);
 
-            if (message == null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
+            ArgumentNullException.ThrowIfNull(message);
 
             var parts = data.Split(' ');
             if (parts.Length < 2)
@@ -82,7 +76,7 @@ namespace Rssdp.Infrastructure
         /// <param name="headerName">A string containing the name of the header to return the type of.</param>
         protected override bool IsContentHeader(string headerName)
         {
-            return ContentHeaderNames.Contains(headerName, StringComparison.OrdinalIgnoreCase);
+            return _contentHeaderNames.Contains(headerName, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

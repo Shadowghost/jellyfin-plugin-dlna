@@ -11,8 +11,8 @@ namespace Rssdp.Infrastructure
     /// <typeparam name="T"></typeparam>
     public abstract class HttpParserBase<T> where T : new()
     {
-        private readonly string[] LineTerminators = new string[] { "\r\n", "\n" };
-        private readonly char[] SeparatorCharacters = new char[] { ',', ';' };
+        private readonly string[] _lineTerminators = ["\r\n", "\n"];
+        private readonly char[] _separatorCharacters = [',', ';'];
 
         /// <summary>
         /// Parses the <paramref name="data"/> provided into either a <see cref="HttpRequestMessage"/> or <see cref="HttpResponseMessage"/> object.
@@ -28,27 +28,23 @@ namespace Rssdp.Infrastructure
         /// <param name="headers">A reference to the <see cref="System.Net.Http.Headers.HttpHeaders"/> collection for the <paramref name="message"/> object.</param>
         /// <param name="data">A string containing the data to be parsed.</param>
         /// <returns>An <see cref="HttpContent"/> object containing the content of the parsed message.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "Honestly, it's fine. MemoryStream doesn't mind.")]
         protected virtual void Parse(T message, System.Net.Http.Headers.HttpHeaders headers, string data)
         {
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
+            ArgumentNullException.ThrowIfNull(data);
 
             if (data.Length == 0)
             {
                 throw new ArgumentException("data cannot be an empty string.", nameof(data));
             }
 
-            if (!LineTerminators.Any(data.Contains))
+            if (!_lineTerminators.Any(data.Contains))
             {
                 throw new ArgumentException("data is not a valid request, it does not contain any CRLF/LF terminators.", nameof(data));
             }
 
             using (var retVal = new ByteArrayContent([]))
             {
-                var lines = data.Split(LineTerminators, StringSplitOptions.None);
+                var lines = data.Split(_lineTerminators, StringSplitOptions.None);
 
                 // First line is the 'request' line containing http protocol details like method, uri, http version etc.
                 ParseStatusLine(lines[0], message);
@@ -77,10 +73,7 @@ namespace Rssdp.Infrastructure
         /// <returns>A <see cref="Version"/> object containing the parsed version data.</returns>
         protected Version ParseHttpVersion(string versionData)
         {
-            if (versionData == null)
-            {
-                throw new ArgumentNullException(nameof(versionData));
-            }
+            ArgumentNullException.ThrowIfNull(versionData);
 
             var versionSeparatorIndex = versionData.IndexOf('/', StringComparison.Ordinal);
             if (versionSeparatorIndex <= 0 || versionSeparatorIndex == versionData.Length)
@@ -88,7 +81,7 @@ namespace Rssdp.Infrastructure
                 throw new ArgumentException("request header line is invalid. Http Version not supplied or incorrect format.", nameof(versionData));
             }
 
-            return Version.Parse(versionData.Substring(versionSeparatorIndex + 1));
+            return Version.Parse(versionData.AsSpan(versionSeparatorIndex + 1));
         }
 
         /// <summary>
@@ -102,8 +95,8 @@ namespace Rssdp.Infrastructure
             // Header format is
             // name: value
             var headerKeySeparatorIndex = line.IndexOf(':', StringComparison.Ordinal);
-            var headerName = line.Substring(0, headerKeySeparatorIndex).Trim();
-            var headerValue = line.Substring(headerKeySeparatorIndex + 1).Trim();
+            var headerName = line[..headerKeySeparatorIndex].Trim();
+            var headerValue = line[(headerKeySeparatorIndex + 1)..].Trim();
 
             // Not sure how to determine where request headers and content headers begin,
             // at least not without a known set of headers (general headers first the content headers)
@@ -127,14 +120,15 @@ namespace Rssdp.Infrastructure
         {
             // Blank line separates headers from content, so read headers until we find blank line.
             int lineIndex = 1;
-            string line = null, nextLine = null;
-            while (lineIndex + 1 < lines.Length && !String.IsNullOrEmpty((line = lines[lineIndex++])))
+            string? line;
+            while (lineIndex + 1 < lines.Length && !string.IsNullOrEmpty(line = lines[lineIndex++]))
             {
+                string? nextLine;
                 // If the following line starts with space or tab (or any whitespace), it is really part of this header but split for human readability.
                 // Combine these lines into a single comma separated style header for easier parsing.
-                while (lineIndex < lines.Length && !String.IsNullOrEmpty((nextLine = lines[lineIndex])))
+                while (lineIndex < lines.Length && !string.IsNullOrEmpty(nextLine = lines[lineIndex]))
                 {
-                    if (nextLine.Length > 0 && Char.IsWhiteSpace(nextLine[0]))
+                    if (nextLine.Length > 0 && char.IsWhiteSpace(nextLine[0]))
                     {
                         line += "," + nextLine.TrimStart();
                         lineIndex++;
@@ -164,20 +158,20 @@ namespace Rssdp.Infrastructure
                 return values;
             }
 
-            var indexOfSeparator = headerValue.IndexOfAny(SeparatorCharacters);
+            var indexOfSeparator = headerValue.IndexOfAny(_separatorCharacters);
             if (indexOfSeparator <= 0)
             {
                 values.Add(headerValue);
             }
             else
             {
-                var segments = headerValue.Split(SeparatorCharacters);
+                var segments = headerValue.Split(_separatorCharacters);
                 if (headerValue.Contains('"', StringComparison.Ordinal))
                 {
                     for (int segmentIndex = 0; segmentIndex < segments.Length; segmentIndex++)
                     {
                         var segment = segments[segmentIndex];
-                        if (segment.Trim().StartsWith("\"", StringComparison.OrdinalIgnoreCase))
+                        if (segment.Trim().StartsWith('"'))
                         {
                             segment = CombineQuotedSegments(segments, ref segmentIndex, segment);
                         }
@@ -201,13 +195,13 @@ namespace Rssdp.Infrastructure
             {
                 if (trimmedSegment == "\"\"" ||
                     (
-                        trimmedSegment.EndsWith("\"", StringComparison.OrdinalIgnoreCase)
+                        trimmedSegment.EndsWith('"')
                         && !trimmedSegment.EndsWith("\"\"", StringComparison.OrdinalIgnoreCase)
                         && !trimmedSegment.EndsWith("\\\"", StringComparison.OrdinalIgnoreCase))
                     )
                 {
                     segmentIndex = index;
-                    return trimmedSegment.Substring(1, trimmedSegment.Length - 2);
+                    return trimmedSegment[1..^1];
                 }
 
                 if (index + 1 < segments.Length)
@@ -217,9 +211,9 @@ namespace Rssdp.Infrastructure
             }
 
             segmentIndex = segments.Length;
-            if (trimmedSegment.StartsWith("\"", StringComparison.OrdinalIgnoreCase) && trimmedSegment.EndsWith("\"", StringComparison.OrdinalIgnoreCase))
+            if (trimmedSegment.StartsWith('"') && trimmedSegment.EndsWith('"'))
             {
-                return trimmedSegment.Substring(1, trimmedSegment.Length - 2);
+                return trimmedSegment[1..^1];
             }
 
             return trimmedSegment;

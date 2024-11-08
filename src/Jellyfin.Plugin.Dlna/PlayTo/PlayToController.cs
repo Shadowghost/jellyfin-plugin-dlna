@@ -49,7 +49,7 @@ public class PlayToController : ISessionController, IDisposable
     private readonly string _serverAddress;
     private readonly string? _accessToken;
     private readonly List<PlaylistItem> _playlist = [];
-    private Device _device;
+    private readonly Device _device;
     private int _currentPlaylistIndex;
     private bool _disposed;
 

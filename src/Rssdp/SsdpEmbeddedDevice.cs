@@ -5,33 +5,33 @@ namespace Rssdp
     /// </summary>
     public class SsdpEmbeddedDevice : SsdpDevice
     {
-        private SsdpRootDevice _RootDevice;
+        private SsdpRootDevice? _rootDevice;
 
         /// <summary>
-        /// Default constructor.
+        /// Initializes a new instance of the <see cref="SsdpEmbeddedDevice"/> class.
         /// </summary>
         public SsdpEmbeddedDevice()
         {
         }
 
         /// <summary>
-        /// Returns the <see cref="SsdpRootDevice"/> that is this device's first ancestor. If this device is itself an <see cref="SsdpRootDevice"/>, then returns a reference to itself.
+        /// Gets the <see cref="SsdpRootDevice"/> that is this device's first ancestor. If this device is itself an <see cref="SsdpRootDevice"/>, then returns a reference to itself.
         /// </summary>
-        public SsdpRootDevice RootDevice
+        public SsdpRootDevice? RootDevice
         {
             get
             {
-                return _RootDevice;
+                return _rootDevice;
             }
 
             internal set
             {
-                _RootDevice = value;
-                lock (this.Devices)
+                _rootDevice = value;
+                lock (Devices)
                 {
-                    foreach (var embeddedDevice in this.Devices)
+                    foreach (var embeddedDevice in Devices)
                     {
-                        ((SsdpEmbeddedDevice)embeddedDevice).RootDevice = _RootDevice;
+                        ((SsdpEmbeddedDevice)embeddedDevice).RootDevice = _rootDevice;
                     }
                 }
             }

@@ -9,36 +9,32 @@ namespace Rssdp.Infrastructure
     /// </summary>
     public sealed class RequestReceivedEventArgs : EventArgs
     {
-        private readonly HttpRequestMessage _Message;
-
-        private readonly IPEndPoint _ReceivedFrom;
-
+        /// <summary>
+        /// Gets the local IP address.
+        /// </summary>
         public IPAddress LocalIPAddress { get; private set; }
 
         /// <summary>
-        /// Full constructor.
+        /// Initializes a new instance of the <see cref="DeviceAvailableEventArgs"/> class.
         /// </summary>
-        public RequestReceivedEventArgs(HttpRequestMessage message, IPEndPoint receivedFrom, IPAddress localIPAddress)
+        /// <param name="message">The <see cref="HttpRequestMessage"/>. data</param>
+        /// <param name="receivedFrom">The <see cref="IPEndPoint"/> the message was received from.</param>
+        /// <param name="localIPAddress">The local <see cref="IPAddress"/>.</param>
+        public RequestReceivedEventArgs(HttpRequestMessage? message, IPEndPoint receivedFrom, IPAddress localIPAddress)
         {
-            _Message = message;
-            _ReceivedFrom = receivedFrom;
+            Message = message;
+            ReceivedFrom = receivedFrom;
             LocalIPAddress = localIPAddress;
         }
 
         /// <summary>
-        /// The <see cref="HttpRequestMessage"/> that was received.
+        /// Gets the <see cref="HttpRequestMessage"/> that was received.
         /// </summary>
-        public HttpRequestMessage Message
-        {
-            get { return _Message; }
-        }
+        public HttpRequestMessage? Message { get; }
 
         /// <summary>
-        /// The <see cref="IPEndPoint"/> the request came from.
+        /// Gets the <see cref="IPEndPoint"/> the request came from.
         /// </summary>
-        public IPEndPoint ReceivedFrom
-        {
-            get { return _ReceivedFrom; }
-        }
+        public IPEndPoint ReceivedFrom { get; }
     }
 }

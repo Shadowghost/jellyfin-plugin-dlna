@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Rssdp.Infrastructure
@@ -27,9 +28,9 @@ namespace Rssdp.Infrastructure
         Task RemoveDevice(SsdpRootDevice device);
 
         /// <summary>
-        /// Returns a read only list of devices being published by this instance.
+        /// Gets a read only list of devices being published by this instance.
         /// </summary>
         /// <seealso cref="SsdpDevice"/>
-        System.Collections.Generic.IEnumerable<SsdpRootDevice> Devices { get; }
+        IReadOnlyList<SsdpRootDevice> Devices { get; }
     }
 }

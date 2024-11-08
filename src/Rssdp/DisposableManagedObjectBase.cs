@@ -14,7 +14,15 @@ namespace Rssdp.Infrastructure
         /// Override this method and dispose any objects you own the lifetime of if disposing is true;
         /// </summary>
         /// <param name="disposing">True if managed objects should be disposed, if false, only unmanaged resources should be released.</param>
-        protected abstract void Dispose(bool disposing);
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            IsDisposed = true;
+        }
 
         /// <summary>
         /// Throws and <see cref="ObjectDisposedException"/> if the <see cref="IsDisposed"/> property is true.
@@ -37,6 +45,11 @@ namespace Rssdp.Infrastructure
             private set;
         }
 
+        /// <summary>
+        /// Builds a message.
+        /// </summary>
+        /// <param name="header">The header.</param>
+        /// <param name="values">The values.</param>
         public static string BuildMessage(string header, Dictionary<string, string> values)
         {
             var builder = new StringBuilder();
@@ -58,8 +71,6 @@ namespace Rssdp.Infrastructure
         /// <inheritdoc />
         public void Dispose()
         {
-            IsDisposed = true;
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }

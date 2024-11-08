@@ -7,41 +7,29 @@ namespace Rssdp
     /// </summary>
     public sealed class DeviceUnavailableEventArgs : EventArgs
     {
-        private readonly DiscoveredSsdpDevice _DiscoveredDevice;
-
-        private readonly bool _Expired;
-
         /// <summary>
-        /// Full constructor.
+        /// Initializes a new instance of the <see cref="DeviceUnavailableEventArgs"/> class.
         /// </summary>
         /// <param name="discoveredDevice">A <see cref="DiscoveredSsdpDevice"/> instance representing the device that has become unavailable.</param>
         /// <param name="expired">A boolean value indicating whether this device is unavailable because it expired, or because it explicitly sent a byebye notification.. See <see cref="Expired"/> for more detail.</param>
         /// <exception cref="ArgumentNullException">Thrown if the <paramref name="discoveredDevice"/> parameter is null.</exception>
         public DeviceUnavailableEventArgs(DiscoveredSsdpDevice discoveredDevice, bool expired)
         {
-            if (discoveredDevice == null)
-            {
-                throw new ArgumentNullException(nameof(discoveredDevice));
-            }
+            ArgumentNullException.ThrowIfNull(discoveredDevice);
 
-            _DiscoveredDevice = discoveredDevice;
-            _Expired = expired;
+            DiscoveredDevice = discoveredDevice;
+            Expired = expired;
         }
 
         /// <summary>
-        /// Returns true if the device is considered unavailable because it's cached information expired before a new alive notification or search result was received. Returns false if the device is unavailable because it sent an explicit notification of it's unavailability.
+        /// Gets a value indicating whether the device is considered unavailable because it's cached information expired before a new alive notification or search result was received.
+        /// If the device sent an explicit notification of it's unavailability, it is not considered expi
         /// </summary>
-        public bool Expired
-        {
-            get { return _Expired; }
-        }
+        public bool Expired { get; }
 
         /// <summary>
-        /// A reference to a <see cref="DiscoveredSsdpDevice"/> instance containing the discovery details of the removed device.
+        /// Gets the <see cref="DiscoveredSsdpDevice"/> containing the discovery details of the removed device.
         /// </summary>
-        public DiscoveredSsdpDevice DiscoveredDevice
-        {
-            get { return _DiscoveredDevice; }
-        }
+        public DiscoveredSsdpDevice DiscoveredDevice { get; }
     }
 }

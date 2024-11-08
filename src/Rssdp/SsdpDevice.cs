@@ -1,6 +1,7 @@
+# nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using Rssdp.Infrastructure;
 
@@ -16,12 +17,8 @@ namespace Rssdp
     /// <seealso cref="SsdpEmbeddedDevice"/>
     public abstract class SsdpDevice
     {
-        private string _Udn;
-        private string _DeviceType;
-        private string _DeviceTypeNamespace;
-        private int _DeviceVersion;
-
-        private IList<SsdpDevice> _Devices;
+        private string _udn;
+        private readonly List<SsdpDevice> _devices;
 
         /// <summary>
         /// Raised when a new child device is added.
@@ -42,20 +39,21 @@ namespace Rssdp
         /// </summary>
         protected SsdpDevice()
         {
-            _DeviceTypeNamespace = SsdpConstants.UpnpDeviceTypeNamespace;
-            _DeviceType = SsdpConstants.UpnpDeviceTypeBasicDevice;
-            _DeviceVersion = 1;
+            DeviceTypeNamespace = SsdpConstants.UpnpDeviceTypeNamespace;
+            DeviceType = SsdpConstants.UpnpDeviceTypeBasicDevice;
+            DeviceVersion = 1;
 
-            _Devices = new List<SsdpDevice>();
-            this.Devices = new ReadOnlyCollection<SsdpDevice>(_Devices);
+            _devices = [];
         }
 
+        /// <summary>
+        /// Returns the <see cref="SsdpDevice"/> as <see cref="SsdpRootDevice"/>.
+        /// </summary>
         public SsdpRootDevice ToRootDevice()
         {
             var device = this;
 
-            var rootDevice = device as SsdpRootDevice;
-            if (rootDevice == null)
+            if (device is not SsdpRootDevice rootDevice)
             {
                 rootDevice = ((SsdpEmbeddedDevice)device).RootDevice;
             }
@@ -64,66 +62,37 @@ namespace Rssdp
         }
 
         /// <summary>
-        /// Sets or returns the core device type (not including namespace, version etc.). Required.
+        /// Gets or sets the core device type (not including namespace, version etc.). Required.
         /// </summary>
         /// <remarks><para>Defaults to the UPnP basic device type.</para></remarks>
         /// <seealso cref="DeviceTypeNamespace"/>
         /// <seealso cref="DeviceVersion"/>
         /// <seealso cref="FullDeviceType"/>
-        public string DeviceType
-        {
-            get
-            {
-                return _DeviceType;
-            }
+        public string DeviceType { get; set; }
 
-            set
-            {
-                _DeviceType = value;
-            }
-        }
 
+        /// <summary>
+        /// Gets or sets the device class.
+        /// </summary>
         public string DeviceClass { get; set; }
 
         /// <summary>
-        /// Sets or returns the namespace for the <see cref="DeviceType"/> of this device. Optional, but defaults to UPnP schema so should be changed if <see cref="DeviceType"/> is not a UPnP device type.
+        /// Gets or sets the namespace for the <see cref="DeviceType"/> of this device. Optional, but defaults to UPnP schema so should be changed if <see cref="DeviceType"/> is not a UPnP device type.
         /// </summary>
         /// <remarks><para>Defaults to the UPnP standard namespace.</para></remarks>
         /// <seealso cref="DeviceType"/>
         /// <seealso cref="DeviceVersion"/>
         /// <seealso cref="FullDeviceType"/>
-        public string DeviceTypeNamespace
-        {
-            get
-            {
-                return _DeviceTypeNamespace;
-            }
-
-            set
-            {
-                _DeviceTypeNamespace = value;
-            }
-        }
+        public string DeviceTypeNamespace { get; set; }
 
         /// <summary>
-        /// Sets or returns the version of the device type. Optional, defaults to 1.
+        /// Gets or sets the version of the device type. Optional, defaults to 1.
         /// </summary>
         /// <remarks><para>Defaults to a value of 1.</para></remarks>
         /// <seealso cref="DeviceType"/>
         /// <seealso cref="DeviceTypeNamespace"/>
         /// <seealso cref="FullDeviceType"/>
-        public int DeviceVersion
-        {
-            get
-            {
-                return _DeviceVersion;
-            }
-
-            set
-            {
-                _DeviceVersion = value;
-            }
-        }
+        public int DeviceVersion { get; set; }
 
         /// <summary>
         /// Returns the full device type string.
@@ -135,18 +104,18 @@ namespace Rssdp
         {
             get
             {
-                return String.Format(
+                return string.Format(
                     CultureInfo.InvariantCulture,
                     "urn:{0}:{3}:{1}:{2}",
-                    this.DeviceTypeNamespace ?? String.Empty,
-                    this.DeviceType ?? String.Empty,
-                    this.DeviceVersion,
-                    this.DeviceClass ?? "device");
+                    DeviceTypeNamespace ?? string.Empty,
+                    DeviceType ?? string.Empty,
+                    DeviceVersion,
+                    DeviceClass ?? "device");
             }
         }
 
         /// <summary>
-        /// Sets or returns the universally unique identifier for this device (without the uuid: prefix). Required.
+        /// Gets or sets the universally unique identifier for this device (without the uuid: prefix). Required.
         /// </summary>
         /// <remarks>
         /// <para>Must be the same over time for a specific device instance (i.e. must survive reboots).</para>
@@ -156,7 +125,7 @@ namespace Rssdp
         public string Uuid { get; set; }
 
         /// <summary>
-        /// Returns (or sets*) a unique device name for this device. Optional, not recommended to be explicitly set.
+        /// Gets or sets(*) a unique device name for this device. Optional, not recommended to be explicitly set.
         /// </summary>
         /// <remarks>
         /// <para>* In general you should not explicitly set this property. If it is not set (or set to null/empty string) the property will return a UDN value that is correct as per the UPnP specification, based on the other device properties.</para>
@@ -167,54 +136,54 @@ namespace Rssdp
         {
             get
             {
-                if (String.IsNullOrEmpty(_Udn) && !String.IsNullOrEmpty(this.Uuid))
+                if (string.IsNullOrEmpty(_udn) && !string.IsNullOrEmpty(Uuid))
                 {
-                    return "uuid:" + this.Uuid;
+                    return "uuid:" + Uuid;
                 }
 
-                return _Udn;
+                return _udn;
             }
 
             set
             {
-                _Udn = value;
+                _udn = value;
             }
         }
 
         /// <summary>
-        /// Sets or returns a friendly/display name for this device on the network. Something the user can identify the device/instance by, i.e Lounge Main Light. Required.
+        /// Gets or sets a friendly/display name for this device on the network. Something the user can identify the device/instance by, i.e Lounge Main Light. Required.
         /// </summary>
         /// <remarks><para>A short description for the end user. </para></remarks>
         public string FriendlyName { get; set; }
 
         /// <summary>
-        /// Sets or returns the name of the manufacturer of this device. Required.
+        /// gets or sets the name of the manufacturer of this device. Required.
         /// </summary>
         public string Manufacturer { get; set; }
 
         /// <summary>
-        /// Sets or returns a URL to the manufacturers web site. Optional.
+        /// Gets or sets a URL to the manufacturers web site. Optional.
         /// </summary>
         public Uri ManufacturerUrl { get; set; }
 
         /// <summary>
-        /// Sets or returns a description of this device model. Recommended.
+        /// gets or sets a description of this device model. Recommended.
         /// </summary>
         /// <remarks><para>A long description for the end user.</para></remarks>
         public string ModelDescription { get; set; }
 
         /// <summary>
-        /// Sets or returns the name of this model. Required.
+        /// Gets or sets the name of this model. Required.
         /// </summary>
         public string ModelName { get; set; }
 
         /// <summary>
-        /// Sets or returns the number of this model. Recommended.
+        /// Gets or sets the number of this model. Recommended.
         /// </summary>
         public string ModelNumber { get; set; }
 
         /// <summary>
-        /// Sets or returns a URL to a web page with details of this device model. Optional.
+        /// Gets or sets a URL to a web page with details of this device model. Optional.
         /// </summary>
         /// <remarks>
         /// <para>Optional. May be relative to base URL.</para>
@@ -222,12 +191,12 @@ namespace Rssdp
         public Uri ModelUrl { get; set; }
 
         /// <summary>
-        /// Sets or returns the serial number for this device. Recommended.
+        /// Gets or sets the serial number for this device. Recommended.
         /// </summary>
         public string SerialNumber { get; set; }
 
         /// <summary>
-        /// Sets or returns the universal product code of the device, if any. Optional.
+        /// Gets or sets the universal product code of the device, if any. Optional.
         /// </summary>
         /// <remarks>
         /// <para>If not blank, must be exactly 12 numeric digits.</para>
@@ -235,7 +204,7 @@ namespace Rssdp
         public string Upc { get; set; }
 
         /// <summary>
-        /// Sets or returns the URL to a web page that can be used to configure/manager/use the device. Recommended.
+        /// Gets or sets the URL to a web page that can be used to configure/manager/use the device. Recommended.
         /// </summary>
         /// <remarks>
         /// <para>May be relative to base URL. </para>
@@ -243,15 +212,11 @@ namespace Rssdp
         public Uri PresentationUrl { get; set; }
 
         /// <summary>
-        /// Returns a read-only enumerable set of <see cref="SsdpDevice"/> objects representing children of this device. Child devices are optional.
+        /// Gets a read-only enumerable set of <see cref="SsdpDevice"/> objects representing children of this device. Child devices are optional.
         /// </summary>
         /// <seealso cref="AddDevice"/>
         /// <seealso cref="RemoveDevice"/>
-        public IList<SsdpDevice> Devices
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyList<SsdpDevice> Devices => _devices;
 
         /// <summary>
         /// Adds a child device to the <see cref="Devices"/> collection.
@@ -266,12 +231,9 @@ namespace Rssdp
         /// <seealso cref="DeviceAdded"/>
         public void AddDevice(SsdpEmbeddedDevice device)
         {
-            if (device == null)
-            {
-                throw new ArgumentNullException(nameof(device));
-            }
+            ArgumentNullException.ThrowIfNull(device);
 
-            if (device.RootDevice != null && device.RootDevice != this.ToRootDevice())
+            if (device.RootDevice != null && device.RootDevice != ToRootDevice())
             {
                 throw new InvalidOperationException("This device is already associated with a different root device (has been added as a child in another branch).");
             }
@@ -282,10 +244,10 @@ namespace Rssdp
             }
 
             bool wasAdded = false;
-            lock (_Devices)
+            lock (_devices)
             {
-                device.RootDevice = this.ToRootDevice();
-                _Devices.Add(device);
+                device.RootDevice = ToRootDevice();
+                _devices.Add(device);
                 wasAdded = true;
             }
 
@@ -307,15 +269,12 @@ namespace Rssdp
         /// <seealso cref="DeviceRemoved"/>
         public void RemoveDevice(SsdpEmbeddedDevice device)
         {
-            if (device == null)
-            {
-                throw new ArgumentNullException(nameof(device));
-            }
+            ArgumentNullException.ThrowIfNull(device);
 
             bool wasRemoved = false;
-            lock (_Devices)
+            lock (_devices)
             {
-                wasRemoved = _Devices.Remove(device);
+                wasRemoved = _devices.Remove(device);
                 if (wasRemoved)
                 {
                     device.RootDevice = null;
@@ -336,7 +295,7 @@ namespace Rssdp
         /// <seealso cref="DeviceAdded"/>
         protected virtual void OnDeviceAdded(SsdpEmbeddedDevice device)
         {
-            var handlers = this.DeviceAdded;
+            var handlers = DeviceAdded;
             handlers?.Invoke(this, new DeviceEventArgs(device));
         }
 
@@ -348,7 +307,7 @@ namespace Rssdp
         /// <see cref="DeviceRemoved"/>
         protected virtual void OnDeviceRemoved(SsdpEmbeddedDevice device)
         {
-            var handlers = this.DeviceRemoved;
+            var handlers = DeviceRemoved;
             handlers?.Invoke(this, new DeviceEventArgs(device));
         }
     }

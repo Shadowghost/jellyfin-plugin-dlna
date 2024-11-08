@@ -10,25 +10,25 @@ namespace Rssdp
     /// <seealso cref="Infrastructure.ISsdpDeviceLocator"/>
     public sealed class DiscoveredSsdpDevice
     {
-        private DateTimeOffset _AsAt;
+        private DateTimeOffset _asAt;
 
         /// <summary>
         /// Sets or returns the type of notification, being either a uuid, device type, service type or upnp:rootdevice.
         /// </summary>
-        public string NotificationType { get; set; }
+        public string? NotificationType { get; set; }
 
         /// <summary>
         /// Sets or returns the universal service name (USN) of the device.
         /// </summary>
-        public string Usn { get; set; }
+        public string? Usn { get; set; }
 
         /// <summary>
         /// Sets or returns a URL pointing to the device description document for this device.
         /// </summary>
-        public Uri DescriptionLocation { get; set; }
+        public Uri? DescriptionLocation { get; set; }
 
         /// <summary>
-        /// Sets or returns the length of time this information is valid for (from the <see cref="AsAt"/> time).
+        /// Sets or returns the length of time this information is valid for (from the <see cref="_asAt"/> time).
         /// </summary>
         public TimeSpan CacheLifetime { get; set; }
 
@@ -37,13 +37,13 @@ namespace Rssdp
         /// </summary>
         public DateTimeOffset AsAt
         {
-            get { return _AsAt; }
+            get { return _asAt; }
 
             set
             {
-                if (_AsAt != value)
+                if (_asAt != value)
                 {
-                    _AsAt = value;
+                    _asAt = value;
                 }
             }
         }
@@ -51,24 +51,21 @@ namespace Rssdp
         /// <summary>
         /// Returns the headers from the SSDP device response message.
         /// </summary>
-        public HttpHeaders ResponseHeaders { get; set; }
+        public HttpHeaders? ResponseHeaders { get; set; }
 
         /// <summary>
-        /// Returns true if this device information has expired, based on the current date/time, and the <see cref="CacheLifetime"/> &amp; <see cref="AsAt"/> properties.
+        /// Returns true if this device information has expired, based on the current date/time, and the <see cref="CacheLifetime"/> &amp; <see cref="_asAt"/> properties.
         /// </summary>
         /// <returns></returns>
         public bool IsExpired()
         {
-            return this.CacheLifetime == TimeSpan.Zero || this.AsAt.Add(this.CacheLifetime) <= DateTimeOffset.Now;
+            return CacheLifetime == TimeSpan.Zero || AsAt.Add(CacheLifetime) <= DateTimeOffset.Now;
         }
 
-        /// <summary>
-        /// Returns the device's <see cref="Usn"/> value.
-        /// </summary>
-        /// <returns>A string containing the device's universal service name.</returns>
-        public override string ToString()
+        /// <inheritdoc />
+        public override string? ToString()
         {
-            return this.Usn;
+            return Usn;
         }
     }
 }

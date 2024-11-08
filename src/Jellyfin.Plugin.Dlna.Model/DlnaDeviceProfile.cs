@@ -1,7 +1,6 @@
 #pragma warning disable CA1819 // Properties should not return arrays
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;

@@ -10,10 +10,10 @@ namespace Rssdp.Infrastructure
     /// </summary>
     public sealed class HttpResponseParser : HttpParserBase<HttpResponseMessage>
     {
-        private readonly string[] ContentHeaderNames = new string[]
-        {
+        private readonly string[] _contentHeaderNames =
+        [
             "Allow", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type", "Expires", "Last-Modified"
-        };
+        ];
 
         /// <summary>
         /// Parses the specified data into a <see cref="HttpResponseMessage"/> instance.
@@ -22,7 +22,7 @@ namespace Rssdp.Infrastructure
         /// <returns>A <see cref="HttpResponseMessage"/> instance containing the parsed data.</returns>
         public override HttpResponseMessage Parse(string data)
         {
-            HttpResponseMessage retVal = null;
+            HttpResponseMessage? retVal = null;
             try
             {
                 retVal = new HttpResponseMessage();
@@ -46,7 +46,7 @@ namespace Rssdp.Infrastructure
         /// <returns>A boolean, true if th specified header relates to HTTP content, otherwise false.</returns>
         protected override bool IsContentHeader(string headerName)
         {
-            return ContentHeaderNames.Contains(headerName, StringComparison.OrdinalIgnoreCase);
+            return _contentHeaderNames.Contains(headerName, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -56,15 +56,8 @@ namespace Rssdp.Infrastructure
         /// <param name="message">Either a <see cref="HttpResponseMessage"/> or <see cref="HttpRequestMessage"/> to assign the parsed values to.</param>
         protected override void ParseStatusLine(string data, HttpResponseMessage message)
         {
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            if (message == null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
+            ArgumentNullException.ThrowIfNull(data);
+            ArgumentNullException.ThrowIfNull(message);
 
             var parts = data.Split(' ');
             if (parts.Length < 2)
@@ -74,7 +67,7 @@ namespace Rssdp.Infrastructure
 
             message.Version = ParseHttpVersion(parts[0].Trim());
 
-            if (!Int32.TryParse(parts[1].Trim(), out var statusCode))
+            if (!int.TryParse(parts[1].Trim(), out var statusCode))
             {
                 throw new ArgumentException("data status line is invalid. Status code is not a valid integer.", nameof(data));
             }

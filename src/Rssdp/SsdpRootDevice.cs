@@ -12,10 +12,10 @@ namespace Rssdp
     /// </remarks>
     public class SsdpRootDevice : SsdpDevice
     {
-        private Uri _UrlBase;
+        private Uri? _urlBase;
 
         /// <summary>
-        /// Default constructor.
+        /// Initializes a new instance of the <see cref="SsdpRootDevice"/> class.
         /// </summary>
         public SsdpRootDevice() : base()
         {
@@ -37,12 +37,12 @@ namespace Rssdp
         /// <summary>
         /// Gets or sets the URL used to retrieve the description document for this device/tree. Required.
         /// </summary>
-        public Uri Location { get; set; }
+        public Uri? Location { get; set; }
 
         /// <summary>
         /// Gets or sets the Address used to check if the received message from same interface with this device/tree. Required.
         /// </summary>
-        public IPAddress Address { get; set; }
+        public IPAddress? Address { get; set; }
 
         /// <summary>
         /// Gets or sets the prefix length used to check if the received message from same interface with this device/tree. Required.
@@ -55,16 +55,16 @@ namespace Rssdp
         /// <remarks>
         /// <para>Defines the base URL. Used to construct fully-qualified URLs. All relative URLs that appear elsewhere in the description are combined with this base URL. If URLBase is empty or not given, the base URL is the URL from which the device description was retrieved (which is the preferred implementation; use of URLBase is no longer recommended). Specified by UPnP vendor. Single URL.</para>
         /// </remarks>
-        public Uri UrlBase
+        public Uri? UrlBase
         {
             get
             {
-                return _UrlBase ?? this.Location;
+                return _urlBase ?? Location;
             }
 
             set
             {
-                _UrlBase = value;
+                _urlBase = value;
             }
         }
     }
